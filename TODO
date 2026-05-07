@@ -1,0 +1,66 @@
+
+done today 28/03/26
+    -finished sign in popup, tommorow  connect accounts with json and keyring
+
+
+done today 07/05/26
+    finished account module, cache to ui connect
+
+to do list:
+    #accounts
+        -account verif with 2FA, keyring for tokens and json for unsensitive data
+        -save accounts/ laod accounts
+        -remove and edit accounts (under bias of if 2FA succeeds)
+        -maaaaayyyybe encrypt data into wcm w/ external libraries, wcm should be enough
+    #imap
+        -imap download, async refresh, inbox seperation, html readability, download and open files
+    #smtp
+        -smtp transfer, possibly attatch files, port switching , hyperlink embedability
+    #menu
+        -tab switch inbox idea, settings, credits help and account management, refresh button
+    #user settings
+        -store details such as "remember me", text size, bg colors / styles etc
+
+    #miscelaneous
+        -compatibility with linux, mac
+
+
+
+
+            ###
+
+             main
+
+            toplevel
+            welcome
+            image
+
+
+            ###
+
+            add acccount
+
+            add account frame
+            add account title
+            email
+            password
+            name optional
+            add account btn
+
+            have account? log in lbl
+
+            ###
+
+            log in
+
+            log in title
+            email entry
+            password entry
+
+                2fa frame
+
+            log in button
+
+            dont have an account? Add Account lbl
+
+            ###
