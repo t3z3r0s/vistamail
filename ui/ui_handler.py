@@ -1,8 +1,10 @@
 import sys
 import os
+import ctypes
 
 import customtkinter as ctk
 from PIL import Image
+from PIL import ImageTk
 from customtkinter import CTkLabel, CTkButton, CTkFrame, CTkEntry, CTkScrollableFrame
 
 
@@ -147,30 +149,23 @@ class AuthWindow(ctk.CTkToplevel):
         )
         self.add_password_entry.place(x=45, y=300, anchor="nw")
 
-        self.remember_var = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(
-            self.add_account_frame, text="Remember me",
-            font=("Segoe UI", 15), fg_color="#33764b",
-            hover_color="#327847", checkmark_color="#FFFEEE",
-            border_width=1, corner_radius=3, variable=self.remember_var,
-        ).place(x=45, y=360)
 
         CTkButton(
             self.add_account_frame, text="Add account", fg_color="#33764b",
             font=("Segoe UI", 20), text_color="#FFFEEE", width=300,
             hover_color="#3c6b47", command=self.send_add_account_data,
-        ).place(x=45, y=430, anchor="nw")
+        ).place(x=45, y=390, anchor="nw")
 
         CTkLabel(
             self.add_account_frame, text_color="#A9A9A9",
             text="Already have an account?", font=("Segoe UI", 15),
-        ).place(x=45, y=480, anchor="nw")
+        ).place(x=45, y=440, anchor="nw")
 
         sign_in_lbl = CTkLabel(
             self.add_account_frame, text_color="#0078D7",
             text="Sign in", font=("Segoe UI", 15),
         )
-        sign_in_lbl.place(x=230, y=480, anchor="nw")
+        sign_in_lbl.place(x=230, y=440, anchor="nw")
         sign_in_lbl.bind("<Button-1>", lambda e: self._switch_to_login())
 
     def send_add_account_data(self):
@@ -331,10 +326,9 @@ class vistamailUI(ctk.CTk):
         self.toplogo_path = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail(32).png")
         self.wallpaper_path = os.path.join(self.script_dir, "assets", "icons", "log-in_bg.jpg")
 
-
         self.after(0, self.login_query)
         self.after_idle(self.load_services)
-        self.bind("<FocusOut>", self.on_focus_out())
+        self.bind("<FocusOut>", self.on_focus_out)
 
     def load_services(self):
         self.imap.load_emails()
@@ -347,30 +341,25 @@ class vistamailUI(ctk.CTk):
             self.withdraw()
             AuthWindow(self, self.accountMngr, self.configMngr, self.cacheMngr)
 
-
-
     def on_focus_out(self, event):
         self.after(10, self.deiconify)
 
-
     def load_mainUI(self):
-        ico_path = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail.ico")
-        if os.path.exists(ico_path):
-            Image.open(self.toplogo_path).save(ico_path)
+        self.ico_path = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail(32).png")
+        if os.path.exists(self.ico_path):
+            Image.open(self.toplogo_path).save(self.ico_path)
 
         self.title("vistamail")
-        self.iconbitmap(ico_path)  # must come BEFORE overrideredirect
         self.deiconify()
-        self.overrideredirect(True)  # strip titlebar after icon is set
-        self.geometry("1200x800")  # overrideredirect resets geometry, so re-set it
+        self.overrideredirect(True)
+        self.geometry("1200x800")
+
 
         wallpaper = ctk.CTkImage(light_image=Image.open(self.wallpaper_path), size=(1200, 800))
         wallpaper_label = ctk.CTkLabel(self, image=wallpaper, text="")
         wallpaper_label.place(x=0, y=0, anchor="nw")
 
-
-
-        closebutton = CTkLabel(self, text_color="#FFFFFF", text="x", font=("Segoe UI", 22, "bold"),fg_color="#33764a")
+        closebutton = CTkLabel(self, text_color="#FFFFFF", text="x", font=("Segoe UI", 22, "bold"), fg_color="#33764a")
         closebutton.place(x=1180, y=10, anchor="ne")
         closebutton.bind("<Button-1>", self.close_mainUI)
 
@@ -379,9 +368,8 @@ class vistamailUI(ctk.CTk):
         self.bind("<ButtonPress-1>", self.drag_window)
         self.bind("<B1-Motion>", self.drag_window)
 
-        self.mainUIholder2 = CTkFrame(self, width=1030, height=680, fg_color="#FFFFFF", corner_radius=0)
-        self.mainUIholder2.place(x=150, y=100, anchor="nw")
-
+        self.mainUIholder2 = CTkFrame(self, width=1030, height=800, fg_color="#FFFFFF", corner_radius=0)
+        self.mainUIholder2.place(x=200, y=0, anchor="nw")
 
 
 
