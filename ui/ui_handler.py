@@ -350,6 +350,7 @@ class vistamailUI(ctk.CTk):
 
 
     def on_focus_out(self, event):
+        self.after(10, self.deiconify)
 
 
     def load_mainUI(self):
