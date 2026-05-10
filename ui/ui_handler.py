@@ -334,6 +334,7 @@ class vistamailUI(ctk.CTk):
 
         self.after(0, self.login_query)
         self.after_idle(self.load_services)
+        self.bind("<FocusOut>", self.on_focus_out())
 
     def load_services(self):
         self.imap.load_emails()
