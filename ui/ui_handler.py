@@ -314,6 +314,7 @@ class AuthWindow(ctk.CTkToplevel):
         if self.winfo_exists():
             sys.exit()
 
+
 class vistamailUI(ctk.CTk):
     def __init__(self, imap, smtp, accountManager, configManager, cacheManager):
         super().__init__()
@@ -327,22 +328,11 @@ class vistamailUI(ctk.CTk):
         self.wallpaper_path = os.path.join(self.script_dir, "assets", "icons", "log-in_bg.jpg")
 
         self.after(0, self.login_query)
-        self.after_idle(self.load_services)
+        #self.after_idle(self.load_services)
         self.bind("<FocusOut>", self.on_focus_out)
 
-    def load_services(self):
-        self.imap.load_emails()
-
-    def login_query(self):
-        if self.cacheMngr.logged_in_query():
-            self.load_mainUI()
-            self.smtp.connect()
-        else:
-            self.withdraw()
-            AuthWindow(self, self.accountMngr, self.configMngr, self.cacheMngr)
-
-    def on_focus_out(self, event):
-        self.after(10, self.deiconify)
+    #def load_services(self):
+    #    self.imap.load_emails()
 
     def load_mainUI(self):
         self.ico_path = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail(32).png")
@@ -353,7 +343,6 @@ class vistamailUI(ctk.CTk):
         self.deiconify()
         self.overrideredirect(True)
         self.geometry("1200x800")
-
 
         wallpaper = ctk.CTkImage(light_image=Image.open(self.wallpaper_path), size=(1200, 800))
         wallpaper_label = ctk.CTkLabel(self, image=wallpaper, text="")
@@ -371,9 +360,20 @@ class vistamailUI(ctk.CTk):
         self.mainUIholder2 = CTkFrame(self, width=1030, height=800, fg_color="#FFFFFF", corner_radius=0)
         self.mainUIholder2.place(x=200, y=0, anchor="nw")
 
+        self.title = CTkLabel(self, text="vistamail",fg_color="#33764a", font=("Segoe UI Light", 36),text_color="#FFFFFF")
+        self.title.place(x=30,y=10,anchor="nw")
 
 
+    def login_query(self):
+        if self.cacheMngr.logged_in_query():
+            self.load_mainUI()
+            self.smtp.connect()
+        else:
+            self.withdraw()
+            AuthWindow(self, self.accountMngr, self.configMngr, self.cacheMngr)
 
+    def on_focus_out(self, event):
+        self.after(10, self.deiconify)
 
     def drag_window(self, event):
         if event.type == "4" and event.y < 30:  # press — store offset
