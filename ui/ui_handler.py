@@ -346,6 +346,11 @@ class vistamailUI(ctk.CTk):
             self.withdraw()
             AuthWindow(self, self.accountMngr, self.configMngr, self.cacheMngr)
 
+
+
+    def on_focus_out(self, event):
+
+
     def load_mainUI(self):
         ico_path = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail.ico")
         if os.path.exists(ico_path):
