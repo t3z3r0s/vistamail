@@ -3,6 +3,9 @@ import re
 import keyring
 import os
 from json import JSONDecodeError
+import secrets
+import hmac
+import bcrypt
 
 ## about 70% of this file is hand written by me, ai did help me on this, however i can recite what every line does in detail
 
@@ -68,18 +71,24 @@ class AccountManager:
         if email in self.accounts:
             raise ValueError("Account already exists")
 
-        self.default_pfp_path = os.path.join(
-            self.script_dir,
-            "../assets/icons/profile_pictures/default_user_pfp.jpg",
-        )
+        self.providerdata = self.domain_suffix_data(email)
+        if self.providerdata is None:
+            raise ValueError("Unsupported email provider domain")
 
-        self.accounts[email] = {"name": name or None,
-                                "pfp": self.default_pfp_path,
-                                "server_data":self.domain_suffix_data(email)}
+        # hash the password before it touches anything
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+        self.accounts[email] = {
+            "name": name or None,
+            "pfp": os.path.join(self.script_dir, "../assets/icons/profile_pictures/default_user_pfp.jpg"),
+            "server_data": self.providerdata
+        }
         data["accounts"] = self.accounts
 
         _write_json(self.account_json_dir, data)
-        keyring.set_password("vistamail", email, password)
+
+        # store the hash, not the real password
+        keyring.set_password("vistamail", email, hashed.decode("utf-8"))
         return True
 
     def load_config_data(self, email):
@@ -87,12 +96,16 @@ class AccountManager:
             raise RuntimeError("ConfigManager not injected")
         return self.configs.load_config_data(email)
 
-
-
     def verify_account_credentials(self, email, password):
-        stored = keyring.get_password("vistamail", email)
-        if stored != password:
+        stored_hash = keyring.get_password("vistamail", email)
+
+        if not stored_hash:
             return False, None, None
+
+        # bcrypt handles the comparison safely, no string == string
+        if not bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
+            return False, None, None
+
         return True, self.load_account_data(email), self.load_config_data(email)
 
 
@@ -194,8 +207,14 @@ class CacheManager:
     def set_account_dependencies(self, account_manager):
         self.accountManager = account_manager
 
-    def append_cache_data(self, email):
-        _write_json(self.cache_json_dir, {"logged_in": email})
+    def append_cache_data(self, email): #ai
+        token = secrets.token_hex(32)
+
+        # Half in the JSON file (what session belongs to who)
+        _write_json(self.cache_json_dir, {"logged_in": email, "token_hint": token[:8]})
+
+        # Full token in keyring — not the password, a separate entry
+        keyring.set_password("vistamail_session", email, token)
 
     def load_cache_data(self):
         try:
@@ -207,10 +226,34 @@ class CacheManager:
         except Exception:
             return None, None
 
-    def logged_in_query(self):
-        email, password = self.load_cache_data()
-        remember_me_checked = _read_json(self.config_json_dir, {}).get("configs",{}).get(email, {}).get("rememberme",False)
-        #print(f"user logged into current session: {email}, {password}")
-        if email and password and remember_me_checked:
-            return True
-        return False
+    def logged_in_query(self): #ai
+        data = _read_json(self.cache_json_dir, {})
+        email = data.get("logged_in")
+        hint = data.get("token_hint")
+
+        if not email or not hint:
+            return False
+
+        stored_token = keyring.get_password("vistamail_session", email)
+
+        if not stored_token:
+            return False
+
+        # Verify the hint matches the stored token prefix
+        if not hmac.compare_digest(stored_token[:8], hint):
+            return False
+
+        remember_me = (
+            _read_json(self.config_json_dir, {})
+            .get("configs", {})
+            .get(email, {})
+            .get("rememberme", False)
+        )
+        return remember_me
+
+    def sign_out(self):
+        data = _read_json(self.cache_json_dir, {})
+        email = data.get("logged_in")
+        if email:
+            keyring.delete_password("vistamail_session", email)
+        _write_json(self.cache_json_dir, {})
