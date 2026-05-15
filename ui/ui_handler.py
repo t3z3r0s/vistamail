@@ -1,11 +1,10 @@
 import sys
 import os
-import ctypes
 
 import customtkinter as ctk
 from PIL import Image
 from PIL import ImageTk
-from customtkinter import CTkLabel, CTkButton, CTkFrame, CTkEntry, CTkScrollableFrame
+from customtkinter import CTkLabel, CTkButton, CTkFrame, CTkEntry, CTkScrollableFrame, CTkCanvas
 
 
 class AuthWindow(ctk.CTkToplevel):
@@ -55,6 +54,10 @@ class AuthWindow(ctk.CTkToplevel):
         self.title_lbl.tkraise()
         self.rights_lbl.tkraise()
         self.init_addacc()
+
+    #
+    # fancy ui for storing accounts saved in frames
+    #
 
     class AccountRow:
         COLOR_DEFAULT  = "#FFFEEE"
@@ -110,6 +113,10 @@ class AuthWindow(ctk.CTkToplevel):
         x  = (sw // 2) - (width  // 2)
         y  = (sh // 2) - (height // 2)
         self.geometry(f"{width}x{height}+{x}+{y}")
+
+    #
+    # Loads ui for connecting an account
+    #
 
     def init_addacc(self):
         self.add_account_frame = CTkFrame(self, fg_color="#FFFEEE",
@@ -175,6 +182,10 @@ class AuthWindow(ctk.CTkToplevel):
         if self.accounts.append_account(name, email, password):
             self.add_account_frame.place_forget()
             self.init_login()
+
+    #
+    # Loads ui for logging in
+    #
 
     def init_login(self):
         if hasattr(self, "signin_frame") and self.signin_frame.winfo_exists():
@@ -315,6 +326,8 @@ class AuthWindow(ctk.CTkToplevel):
             sys.exit()
 
 
+
+
 class vistamailUI(ctk.CTk):
     def __init__(self, imap, smtp, accountManager, configManager, cacheManager):
         super().__init__()
@@ -328,11 +341,11 @@ class vistamailUI(ctk.CTk):
         self.wallpaper_path = os.path.join(self.script_dir, "assets", "icons", "log-in_bg.jpg")
 
         self.after(0, self.login_query)
-        #self.after_idle(self.load_services)
         self.bind("<FocusOut>", self.on_focus_out)
 
-    #def load_services(self):
-    #    self.imap.load_emails()
+    #
+    # Loads main ui such as inbox, send emails etc
+    #
 
     def load_mainUI(self):
         self.ico_path = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail(32).png")
@@ -344,9 +357,14 @@ class vistamailUI(ctk.CTk):
         self.overrideredirect(True)
         self.geometry("1200x800")
 
-        wallpaper = ctk.CTkImage(light_image=Image.open(self.wallpaper_path), size=(1200, 800))
-        wallpaper_label = ctk.CTkLabel(self, image=wallpaper, text="")
-        wallpaper_label.place(x=0, y=0, anchor="nw")
+        self.sidebarcanvas = CTkCanvas(self, width=1200, height=800, highlightthickness=0)
+        self.sidebarcanvas.place(x=0, y=0)
+
+        img = Image.open(self.wallpaper_path)
+        img = img.resize((1200, 800), Image.Resampling.LANCZOS)
+        self.wallpaper_img = ImageTk.PhotoImage(img)
+
+        self.sidebarcanvas.create_image(0, 0,image=self.wallpaper_img,anchor="nw")
 
         closebutton = CTkLabel(self, text_color="#FFFFFF", text="x", font=("Segoe UI", 22, "bold"), fg_color="#33764a")
         closebutton.place(x=1180, y=10, anchor="ne")
@@ -357,11 +375,38 @@ class vistamailUI(ctk.CTk):
         self.bind("<ButtonPress-1>", self.drag_window)
         self.bind("<B1-Motion>", self.drag_window)
 
+
+
+
+        def widget_ui_hover_enter(event):
+            canvas = event.widget
+            item = canvas.find_withtag("current")[0]
+            canvas.itemconfig(item, fill="#A9A9A9")
+
+        def widget_ui_hover_leave(event):
+            canvas = event.widget
+            item = canvas.find_withtag("current")[0]
+            canvas.itemconfig(item, fill="white")
+
+
+
         self.mainUIholder2 = CTkFrame(self, width=1030, height=800, fg_color="#FFFFFF", corner_radius=0)
         self.mainUIholder2.place(x=200, y=0, anchor="nw")
 
-        self.title = CTkLabel(self, text="vistamail",fg_color="#33764a", font=("Segoe UI Light", 36),text_color="#FFFFFF")
-        self.title.place(x=30,y=10,anchor="nw")
+        self.vistatitle = self.sidebarcanvas.create_text(
+            100, 50,
+            text="vistamail",
+            fill="white",
+            font=("Segoe UI Light", 30)
+        )
+
+        def testfunc(event=None):
+            print("pennepenne")
+
+        #self.sidebarcanvas.tag_bind(self.vistatitle, "<Enter>", widget_ui_hover_enter)
+        #self.sidebarcanvas.tag_bind(self.vistatitle, "<Leave>", widget_ui_hover_leave)
+
+
 
 
     def login_query(self):
