@@ -150,6 +150,7 @@ def _read_json(path, default):
     try:
         return json.loads(content)
     except JSONDecodeError:
+        print(f"Warning: corrupted JSON at {path}, resetting to default")
         _write_json(path, default)
         return default
 
@@ -223,7 +224,7 @@ class CacheManager:
             if logged_in_email and logged_in_password:
                 return logged_in_email, logged_in_password
             return None, None
-        except Exception:
+        except (keyring.errors.KeyringError, OSError, TypeError):
             return None, None
 
     def logged_in_query(self): #ai

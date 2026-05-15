@@ -1,10 +1,12 @@
 import sys
 import os
+import tkinter
 
 import customtkinter as ctk
 from PIL import Image
 from PIL import ImageTk
 from customtkinter import CTkLabel, CTkButton, CTkFrame, CTkEntry, CTkScrollableFrame, CTkCanvas
+from ui.mail_view import MailView
 
 
 class AuthWindow(ctk.CTkToplevel):
@@ -24,7 +26,7 @@ class AuthWindow(ctk.CTkToplevel):
         self.transient(parent)
         self.lift()
         self.focus_force()
-        self.grab_set()   # IMPORTANT
+        self.grab_set()
 
         self.overrideredirect(True)
         self.geometry_center(1000, 600)
@@ -57,7 +59,6 @@ class AuthWindow(ctk.CTkToplevel):
             text_color="#FFFFFF", bg_color="#33764A",
         )
 
-
         self.title_lbl.place(x=20, y=10, anchor="nw")
         self.rights_lbl.place(x=10, y=570, anchor="nw")
         self.close_btn.place(x=990, y=5, anchor="ne")
@@ -76,7 +77,7 @@ class AuthWindow(ctk.CTkToplevel):
         COLOR_SELECTED = "#D3D3D3"
 
         def __init__(self, parent_widget, outer, email, data, pfp_image):
-            self.outer = outer          # the AuthWindow instance
+            self.outer = outer
             self.email = email
             self.data  = data
 
@@ -110,11 +111,7 @@ class AuthWindow(ctk.CTkToplevel):
             for row in self.outer.account_rows:
                 row.frame.configure(fg_color=self.COLOR_DEFAULT)
             self.frame.configure(fg_color=self.COLOR_SELECTED)
-
-            # 2. Store the chosen email on the parent window
             self.outer.selected_email = self.email
-
-            # 3. Reveal the password entry
             self.outer.show_password_entry()
 
     def geometry_center(self, width, height):
@@ -167,7 +164,6 @@ class AuthWindow(ctk.CTkToplevel):
         )
         self.add_password_entry.place(x=45, y=300, anchor="nw")
 
-
         CTkButton(
             self.add_account_frame, text="Add account", fg_color="#33764b",
             font=("Segoe UI", 20), text_color="#FFFEEE", width=300,
@@ -202,8 +198,6 @@ class AuthWindow(ctk.CTkToplevel):
         if hasattr(self, "signin_frame") and self.signin_frame.winfo_exists():
             self.signin_frame.destroy()
 
-
-
         self.signin_frame = CTkFrame(self, fg_color="#FFFEEE",
                                      width=400, height=600)
         self.signin_frame.place(x=0, y=0, anchor="nw")
@@ -211,13 +205,11 @@ class AuthWindow(ctk.CTkToplevel):
         for w in (self.title_lbl, self.rights_lbl, self.close_btn):
             w.tkraise()
 
-
         CTkLabel(
             self.signin_frame, text="Sign in", fg_color="#FFFEEE",
             text_color="black", bg_color="#FFFEEE",
             font=("Segoe UI Light", 40),
         ).place(x=45, y=80, anchor="nw")
-
 
         self.accounts_holder = CTkScrollableFrame(
             self.signin_frame, bg_color="#FFFEEE", fg_color="#FFFEEE",
@@ -233,9 +225,9 @@ class AuthWindow(ctk.CTkToplevel):
         )
 
         all_accounts = self.accounts.load_all_accounts().get("accounts", {})
-        self.account_rows = []   # reset for fresh render
+        self.account_rows = []
 
-        pfp_path  = os.path.join(
+        pfp_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "../assets/icons/profile_pictures/default_user_pfp.jpg",
         )
@@ -254,7 +246,6 @@ class AuthWindow(ctk.CTkToplevel):
             self.accounts_holder.place_forget()
             self.no_accounts_lbl.place(x=45, y=150, anchor="nw")
 
-
         self.login_password_entry = CTkEntry(
             self.signin_frame, border_width=1, height=30, width=300,
             font=("Segoe UI", 17, "italic"), fg_color="#FFFEEE",
@@ -269,7 +260,6 @@ class AuthWindow(ctk.CTkToplevel):
             hover_color="#327847", checkmark_color="#FFFEEE",
             border_width=1, corner_radius=3, variable=self.remember_var,
         )
-        # Also hidden until an account is selected
         self.signin_button = CTkButton(
             self.signin_frame, text="Sign in", fg_color="#33764b",
             font=("Segoe UI", 20), text_color="#FFFEEE", width=300,
@@ -299,7 +289,7 @@ class AuthWindow(ctk.CTkToplevel):
             print("No account selected.")
             return
 
-        email = self.selected_email
+        email    = self.selected_email
         password = self.login_password_entry.get().strip()
         remember = self.remember_var.get()
 
@@ -320,19 +310,19 @@ class AuthWindow(ctk.CTkToplevel):
         try:
             self.focus_force()
             self.grab_set()
-        except:
+        except tkinter.TclError:
             pass
 
     def _safe_destroy(self):
         try:
             self.grab_release()
-        except:
+        except tkinter.TclError:
             pass
 
         try:
             super().destroy()
-        except Exception as e:
-            print("MainUI destroy error suppressed:", e)
+        except tkinter.TclError as e:
+            print("Window destroy error:", e)
 
     def on_login_success(self, account_data, config_data):
         self.destroy()
@@ -354,18 +344,16 @@ class AuthWindow(ctk.CTkToplevel):
             sys.exit()
 
 
-
-
 class vistamailUI(ctk.CTk):
     def __init__(self, imap, smtp, accountManager, configManager, cacheManager):
         super().__init__()
-        self.imap      = imap
-        self.smtp      = smtp
+        self.imap        = imap
+        self.smtp        = smtp
         self.accountMngr = accountManager
         self.configMngr  = configManager
         self.cacheMngr   = cacheManager
-        self.script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.toplogo_path = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail(32).png")
+        self.script_dir  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.toplogo_path   = os.path.join(self.script_dir, "assets", "icons", "vistamail_logos", "Vistamail(32).png")
         self.wallpaper_path = os.path.join(self.script_dir, "assets", "icons", "log-in_bg.jpg")
 
         self.after(0, self.login_query)
@@ -390,10 +378,12 @@ class vistamailUI(ctk.CTk):
         img = Image.open(self.wallpaper_path)
         img = img.resize((1200, 800), Image.Resampling.LANCZOS)
         self.wallpaper_img = ImageTk.PhotoImage(img)
+        self.sidebarcanvas.create_image(0, 0, image=self.wallpaper_img, anchor="nw")
 
-        self.sidebarcanvas.create_image(0, 0,image=self.wallpaper_img,anchor="nw")
+        self.mail_view = MailView(self, self.imap, self.smtp, self.configMngr)
+        self.mail_view.place(x=200, y=0, relwidth=1, relheight=1)
 
-        closebutton = CTkLabel(self, text_color="#FFFFFF", text="x", font=("Segoe UI", 22, "bold"), fg_color="#33764a")
+        closebutton = CTkLabel(self, text_color="#111111", text="x", font=("Segoe UI", 22, "bold"), fg_color="#FFFFFF")
         closebutton.place(x=1180, y=10, anchor="ne")
         closebutton.bind("<Button-1>", self.close_mainUI)
 
@@ -401,9 +391,6 @@ class vistamailUI(ctk.CTk):
         self._drag_y = 0
         self.bind("<ButtonPress-1>", self.drag_window)
         self.bind("<B1-Motion>", self.drag_window)
-
-
-
 
         def widget_ui_hover_enter(event):
             canvas = event.widget
@@ -415,137 +402,63 @@ class vistamailUI(ctk.CTk):
             item = canvas.find_withtag("current")[0]
             canvas.itemconfig(item, fill="white")
 
-
-
-        self.mainUIholder2 = CTkFrame(self, width=1030, height=800, fg_color="#FFFFFF", corner_radius=0)
-        self.mainUIholder2.place(x=200, y=0, anchor="nw")
-
         self.vistatitle = self.sidebarcanvas.create_text(
-            100, 50,
-            text="vistamail",
-            fill="white",
-            font=("Segoe UI Light", 30)
+            100, 50, text="vistamail", fill="white", font=("Segoe UI Light", 30)
         )
-
-        self.inboxspacer = self.sidebarcanvas.create_line(25,100,175,100,fill="#CACACA",width=1)
+        self.inboxspacer = self.sidebarcanvas.create_line(25, 100, 175, 100, fill="#CACACA", width=1)
 
         self.primarybtn = self.sidebarcanvas.create_text(
-            60,130,
-            text="Primary",
-            fill="white",
-            font=("Segoe UI Light", 15)
+            60, 130, text="Primary", fill="white", font=("Segoe UI Light", 15)
         )
-
         self.favoritesbtn = self.sidebarcanvas.create_text(
-            65, 160,
-            text="Favorited",
-            fill="white",
-            font=("Segoe UI Light", 15)
+            65, 160, text="Favorited", fill="white", font=("Segoe UI Light", 15)
         )
-
         self.sentbtn = self.sidebarcanvas.create_text(
-            45, 190,
-            text="Sent",
-            fill="white",
-            font=("Segoe UI Light", 15)
+            45, 190, text="Sent", fill="white", font=("Segoe UI Light", 15)
         )
 
         self.secondaryinboxspacer = self.sidebarcanvas.create_line(25, 220, 175, 220, fill="#CACACA", width=1)
 
         self.draftsbtn = self.sidebarcanvas.create_text(
-            52, 240,
-            text="Drafts",
-            fill="white",
-            font=("Segoe UI Light", 15)
+            52, 240, text="Drafts", fill="white", font=("Segoe UI Light", 15)
         )
-
         self.junkbtn = self.sidebarcanvas.create_text(
-            46, 270,
-            text="Junk",
-            fill="white",
-            font=("Segoe UI Light", 15)
+            46, 270, text="Junk", fill="white", font=("Segoe UI Light", 15)
         )
-
         self.spambtn = self.sidebarcanvas.create_text(
-            50, 300,
-            text="Spam",
-            fill="white",
-            font=("Segoe UI Light", 15)
+            50, 300, text="Spam", fill="white", font=("Segoe UI Light", 15)
         )
 
-        self.versiontext = self.sidebarcanvas.create_text(
-            50, 790,
-            text="vistamail v1.1",
-            fill="#919191",
-            font=("Segoe UI Light", 10,"bold")
-        )
 
-        self.log_out_test = self.sidebarcanvas.create_text(
-            50, 600,
-            text="log out",
-            fill="#FFFFFF",
-            font=("Segoe UI Light", 10,"bold")
-        )
-
-        def log_out(event=None):
-            self.cacheMngr.sign_out()
-            self.destroy()
-
-            self.after(100, lambda: vistamailUI(
-                self.imap,
-                self.smtp,
-                self.accountMngr,
-                self.configMngr,
-                self.cacheMngr
-            ).mainloop())
-
-
-        self.sidebarcanvas.tag_bind(self.log_out_test,"<Button-1>", log_out)
-
-
-        self.inboxfolderwidgets = [self.primarybtn,self.junkbtn,self.favoritesbtn,self.sentbtn,self.draftsbtn,self.spambtn]
-
+        self.inboxfolderwidgets = [
+            self.primarybtn, self.junkbtn, self.favoritesbtn,
+            self.sentbtn, self.draftsbtn, self.spambtn
+        ]
         for widget in self.inboxfolderwidgets:
-            self.sidebarcanvas.tag_bind(widget,"<Enter>", widget_ui_hover_enter)
-            self.sidebarcanvas.tag_bind(widget,"<Leave>", widget_ui_hover_leave)
-
+            self.sidebarcanvas.tag_bind(widget, "<Enter>", widget_ui_hover_enter)
+            self.sidebarcanvas.tag_bind(widget, "<Leave>", widget_ui_hover_leave)
 
 
     def login_query(self):
         if self.cacheMngr.logged_in_query():
             self.load_mainUI()
-            self.smtp.connect()
         else:
             self.withdraw()
             self.auth_window = AuthWindow(
                 self,
                 self.accountMngr,
                 self.configMngr,
-                self.cacheMngr
+                self.cacheMngr,
             )
 
     def drag_window(self, event):
-        if event.type == "4" and event.y < 30:  # press — store offset
+        if event.type == "4" and event.y < 30:
             self._drag_x = event.x_root - self.winfo_x()
             self._drag_y = event.y_root - self.winfo_y()
-
-        elif event.type == "6" and event.y < 30:  # motion — move window
+        elif event.type == "6" and event.y < 30:
             x = event.x_root - self._drag_x
             y = event.y_root - self._drag_y
             self.geometry(f"+{x}+{y}")
 
-    def close_mainUI(self,event=None):
+    def close_mainUI(self, event=None):
         sys.exit()
-
-
-class InboxViewer(ctk.CTkFrame):
-    def __init__(self, parent_widget, imap, configs):
-        super().__init__(parent_widget)
-
-class SettingsViewer(ctk.CTkFrame):
-    def __init__(self, parent_widget, configs):
-        super().__init__(parent_widget)
-
-class ComposeViewer(ctk.CTkFrame):
-    def __init__(self, parent_widget, smtp, configs):
-        super().__init__(parent_widget)
