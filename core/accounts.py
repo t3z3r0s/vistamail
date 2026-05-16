@@ -7,8 +7,6 @@ import secrets
 import hmac
 import bcrypt
 
-## about 70% of this file is hand written by me, ai did help me on this, however i can recite what every line does in detail
-
 
 class AccountManager:
     def __init__(self):
@@ -22,16 +20,16 @@ class AccountManager:
         self.config_json_dir  = os.path.join(self.script_dir, "..", "data", "user_settings.json")
 
         self.PROVIDERS = {
-            "gmail.com":   {"imap": {"server": "imap.gmail.com",          "port": 993},
-                            "smtp": {"server": "smtp.gmail.com",           "port_ssl": 465, "port_tls": 587}},
-            "yahoo.com":   {"imap": {"server": "imap.mail.yahoo.com",     "port": 993},
-                            "smtp": {"server": "smtp.mail.yahoo.com",      "port_ssl": 465, "port_tls": 587}},
-            "outlook.com": {"imap": {"server": "outlook.office365.com",   "port": 993},
-                            "smtp": {"server": "smtp.office365.com",       "port_ssl": 465, "port_tls": 587}},
-            "hotmail.com": {"imap": {"server": "outlook.office365.com",   "port": 993},
-                            "smtp": {"server": "smtp.office365.com",       "port_ssl": 465, "port_tls": 587}},
-            "icloud.com":  {"imap": {"server": "imap.mail.me.com",        "port": 993},
-                            "smtp": {"server": "smtp.mail.me.com",         "port_ssl": 465, "port_tls": 587}},
+            "gmail.com":   {"imap": {"server": "imap.gmail.com",        "port": 993},
+                            "smtp": {"server": "smtp.gmail.com",         "port_ssl": 465, "port_tls": 587}},
+            "yahoo.com":   {"imap": {"server": "imap.mail.yahoo.com",   "port": 993},
+                            "smtp": {"server": "smtp.mail.yahoo.com",    "port_ssl": 465, "port_tls": 587}},
+            "outlook.com": {"imap": {"server": "outlook.office365.com", "port": 993},
+                            "smtp": {"server": "smtp.office365.com",     "port_ssl": 465, "port_tls": 587}},
+            "hotmail.com": {"imap": {"server": "outlook.office365.com", "port": 993},
+                            "smtp": {"server": "smtp.office365.com",     "port_ssl": 465, "port_tls": 587}},
+            "icloud.com":  {"imap": {"server": "imap.mail.me.com",      "port": 993},
+                            "smtp": {"server": "smtp.mail.me.com",       "port_ssl": 465, "port_tls": 587}},
         }
 
         self.DEFAULT_CONFIG = {
@@ -75,7 +73,6 @@ class AccountManager:
         if self.providerdata is None:
             raise ValueError("Unsupported email provider domain")
 
-        # hash the password before it touches anything
         hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
         self.accounts[email] = {
@@ -87,7 +84,6 @@ class AccountManager:
 
         _write_json(self.account_json_dir, data)
 
-        # store the hash, not the real password
         keyring.set_password("vistamail", email, hashed.decode("utf-8"))
         return True
 
@@ -102,12 +98,10 @@ class AccountManager:
         if not stored_hash:
             return False, None, None
 
-        # bcrypt handles the comparison safely, no string == string
         if not bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
             return False, None, None
 
         return True, self.load_account_data(email), self.load_config_data(email)
-
 
     def load_account_data(self, email):
         data     = _read_json(self.account_json_dir, {"accounts": {}})
@@ -133,6 +127,17 @@ class AccountManager:
             raise RuntimeError("ConfigManager not injected")
         self.configs.update_configs(email, **kwargs)
 
+    def store_plain_password(self, email, password):
+        keyring.set_password("vistamail_plain", email, password)
+
+    def get_plain_password(self, email):
+        return keyring.get_password("vistamail_plain", email)
+
+    def delete_plain_password(self, email):
+        try:
+            keyring.delete_password("vistamail_plain", email)
+        except keyring.errors.PasswordDeleteError:
+            pass
 
 
 def _read_json(path, default):
@@ -201,36 +206,32 @@ class CacheManager:
     def __init__(self):
         self.accountManager = None
 
-        self.script_dir       = os.path.dirname(os.path.abspath(__file__))
-        self.cache_json_dir   = os.path.join(self.script_dir, "..", "data", "user_cache.json")
-        self.config_json_dir  = os.path.join(self.script_dir, "..", "data", "user_settings.json")
+        self.script_dir      = os.path.dirname(os.path.abspath(__file__))
+        self.cache_json_dir  = os.path.join(self.script_dir, "..", "data", "user_cache.json")
+        self.config_json_dir = os.path.join(self.script_dir, "..", "data", "user_settings.json")
 
     def set_account_dependencies(self, account_manager):
         self.accountManager = account_manager
 
-    def append_cache_data(self, email): #ai
+    def append_cache_data(self, email):
         token = secrets.token_hex(32)
-
-        # Half in the JSON file (what session belongs to who)
         _write_json(self.cache_json_dir, {"logged_in": email, "token_hint": token[:8]})
-
-        # Full token in keyring — not the password, a separate entry
         keyring.set_password("vistamail_session", email, token)
 
     def load_cache_data(self):
         try:
-            logged_in_email =  _read_json(self.cache_json_dir, {}).get("logged_in", {})
-            logged_in_password = keyring.get_password("vistamail", logged_in_email)
-            if logged_in_email and logged_in_password:
-                return logged_in_email, logged_in_password
-            return None, None
+            data            = _read_json(self.cache_json_dir, {})
+            logged_in_email = data.get("logged_in")
+            if logged_in_email:
+                return logged_in_email
+            return None
         except (keyring.errors.KeyringError, OSError, TypeError):
-            return None, None
+            return None
 
-    def logged_in_query(self): #ai
-        data = _read_json(self.cache_json_dir, {})
+    def logged_in_query(self):
+        data  = _read_json(self.cache_json_dir, {})
         email = data.get("logged_in")
-        hint = data.get("token_hint")
+        hint  = data.get("token_hint")
 
         if not email or not hint:
             return False
@@ -240,7 +241,6 @@ class CacheManager:
         if not stored_token:
             return False
 
-        # Verify the hint matches the stored token prefix
         if not hmac.compare_digest(stored_token[:8], hint):
             return False
 
@@ -253,7 +253,7 @@ class CacheManager:
         return remember_me
 
     def sign_out(self):
-        data = _read_json(self.cache_json_dir, {})
+        data  = _read_json(self.cache_json_dir, {})
         email = data.get("logged_in")
         if email:
             keyring.delete_password("vistamail_session", email)

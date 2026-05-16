@@ -7,9 +7,6 @@ from ui.ui_handler import vistamailUI
 
 
 def main():
-    imap = Imap()
-    smtp = Smtp()
-
     accountManager = AccountManager()
     configManager = ConfigManager()
     cacheManager = CacheManager()
@@ -18,6 +15,9 @@ def main():
     accountManager.set_dependencies(configManager, cacheManager)
     configManager.set_account_dependencies(accountManager)
     cacheManager.set_account_dependencies(accountManager)
+
+    imap = Imap()
+    smtp = Smtp()
 
     vista = vistamailUI(imap, smtp, accountManager, configManager, cacheManager)
 
