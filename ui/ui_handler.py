@@ -1,3 +1,4 @@
+import json
 import sys
 import os
 import tkinter
@@ -6,6 +7,7 @@ import customtkinter as ctk
 from PIL import Image
 from PIL import ImageTk
 from customtkinter import CTkLabel, CTkButton, CTkFrame, CTkEntry, CTkScrollableFrame, CTkCanvas
+
 from ui.mail_view import MailView
 
 
@@ -380,12 +382,32 @@ class vistamailUI(ctk.CTk):
         self.wallpaper_img = ImageTk.PhotoImage(img)
         self.sidebarcanvas.create_image(0, 0, image=self.wallpaper_img, anchor="nw")
 
-        self.mail_view = MailView(self, self.imap, self.smtp, self.configMngr)
-        self.mail_view.place(x=200, y=0, relwidth=1, relheight=1)
+        self.mainUIholder = CTkFrame(self, width=1000, height=800, fg_color="#FFFFFF", corner_radius=0)
+        self.mainUIholder.place(x=200, y=0)
 
-        closebutton = CTkLabel(self, text_color="#111111", text="x", font=("Segoe UI", 22, "bold"), fg_color="#FFFFFF")
-        closebutton.place(x=1180, y=10, anchor="ne")
-        closebutton.bind("<Button-1>", self.close_mainUI)
+        self.mail_view = MailView(self.mainUIholder, self.imap, self.smtp, self.configMngr)
+        self.mail_view.place(x=30, y=70,anchor="nw")
+
+        self.search_inbox = CTkEntry(self.mainUIholder, placeholder_text="Search emails:", border_color="#f0f0f0",height=30,width=230,fg_color="#FFFFFF",font=("Segoe UI", 16))
+        self.search_inbox.place(x=30,y=60,anchor="sw")
+
+        self.filter_search = ctk.CTkComboBox(self.mainUIholder, values=["New -> Old","Old -> New","By Size"],height=30,width=110,
+                                             dropdown_font=("Segoe UI", 12),dropdown_fg_color="#FFFFFF",fg_color="#FFFFFF",border_color="#f0f0f0",button_color="#f0f0f0")
+        self.filter_search.place(x=270,y=60,anchor="sw")
+
+        self.refresh_emails = CTkButton(self.mainUIholder,width=30,height=30,text="⟳",fg_color="#FFFFFF",border_color="#FFFFFF",text_color="#111111",hover_color="#f2f2f2",font=("Segoe UI", 18))
+        self.refresh_emails.place(x=390,y=60,anchor="sw")
+
+        self.script_dir  = os.path.dirname(os.path.abspath(__file__))
+        self.cache_json_dir = os.path.join(self.script_dir, "..", "data", "user_cache.json")
+        with open(self.cache_json_dir,"r") as f:
+            self.current_acc = json.load(f).get("logged_in","")
+        self.current_user = CTkLabel(self.mainUIholder,text=f"Current account: {self.current_acc}", font=("Segoe UI Light", 17),text_color="#A9A9A9")
+        self.current_user.place(x=30,y=770,anchor="nw")
+
+        self.closebutton = CTkLabel(self, text_color="#111111", text="x", font=("Segoe UI", 22, "bold"), fg_color="#FFFFFF")
+        self.closebutton.place(x=1180, y=10, anchor="ne")
+        self.closebutton.bind("<Button-1>", self.close_mainUI)
 
         self._drag_x = 0
         self._drag_y = 0
@@ -408,26 +430,29 @@ class vistamailUI(ctk.CTk):
         self.inboxspacer = self.sidebarcanvas.create_line(25, 100, 175, 100, fill="#CACACA", width=1)
 
         self.primarybtn = self.sidebarcanvas.create_text(
-            60, 130, text="Primary", fill="white", font=("Segoe UI Light", 15)
+            57, 130, text="Primary", fill="white", font=("Segoe UI Light", 13)
         )
         self.favoritesbtn = self.sidebarcanvas.create_text(
-            65, 160, text="Favorited", fill="white", font=("Segoe UI Light", 15)
+            63, 160, text="Favorited", fill="white", font=("Segoe UI Light", 13)
         )
         self.sentbtn = self.sidebarcanvas.create_text(
-            45, 190, text="Sent", fill="white", font=("Segoe UI Light", 15)
+            45, 190, text="Sent", fill="white", font=("Segoe UI Light", 13)
         )
 
         self.secondaryinboxspacer = self.sidebarcanvas.create_line(25, 220, 175, 220, fill="#CACACA", width=1)
 
         self.draftsbtn = self.sidebarcanvas.create_text(
-            52, 240, text="Drafts", fill="white", font=("Segoe UI Light", 15)
+            51, 240, text="Drafts", fill="white", font=("Segoe UI Light", 13)
         )
         self.junkbtn = self.sidebarcanvas.create_text(
-            46, 270, text="Junk", fill="white", font=("Segoe UI Light", 15)
+            46, 270, text="Junk", fill="white", font=("Segoe UI Light", 13)
         )
         self.spambtn = self.sidebarcanvas.create_text(
-            50, 300, text="Spam", fill="white", font=("Segoe UI Light", 15)
+            50, 300, text="Spam", fill="white", font=("Segoe UI Light", 13)
         )
+
+        self.settingsButton = ctk.CTkButton(self, text="Settings",font=("Segoe UI Light", 16),width=160,height=30,fg_color="#FFFFFF",text_color="#222222",hover_color="#A9A9A9",corner_radius=0)
+        self.settingsButton.place(x=20,y=750,anchor="nw")
 
 
         self.inboxfolderwidgets = [
