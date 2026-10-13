@@ -1,7 +1,7 @@
 # Vistamail
 
-Vistamail is a lightweight email client providing an easier way of storing and signing into
-multiple email accounts, vistamail uses a "tab bar" for storing accounts similar to web browser tabs.
+Vistamail is a lightweight email client providing an easy way of storing and signing into
+multiple email accounts, vistamail uses a "tab bar" for storing and swapping accounts similar to web browser tabs.
 
 ---
 
