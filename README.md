@@ -30,4 +30,4 @@ smtp will run on different ports as per email provider:
 | Zoho Mail         | yes            | yes            |
 
 
-As for imap it uses the same for all providers (993).
+As for imap it uses the same for all providers (port 993).
