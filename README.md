@@ -13,7 +13,7 @@ multiple email accounts, vistamail uses a "tab bar" for storing and swapping acc
 | `json` | used for storing user accounts locally |
 | `smtplib` | used in sending emails securely with TLS and SSL (based on provider, see more details below) |
 | `imap-tools` | used for downloading inboxes and html content |
-| `TK / CTK` | main ui library used for its simplicity, lightness, and ease of reading for user modifications |
+| `TK / CTK` | main ui library used for its simplicity for me, the developer, and ease of customisation for user modifications |
 
 ---
 
