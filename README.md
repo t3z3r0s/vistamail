@@ -1,4 +1,4 @@
-# Vistamail
+# Vistamail (UNFINISHED)
 
 Vistamail is a lightweight email client providing an easy way of storing and signing into
 multiple email accounts, vistamail uses a "tab bar" for storing and swapping accounts similar to web browser tabs.
